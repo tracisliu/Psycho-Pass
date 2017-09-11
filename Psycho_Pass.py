@@ -180,8 +180,9 @@ class RunThread(QThread):
     def del_stopwords(self, seg_sent):
         stopwords = self.read_lines("C:/Users/traci/Psycho-Pass/stop_words.txt")  # 读取停用词表
         new_sent = []   # 去除停用词后的句子
+        punt_list = ",.？（）;:。...【】★"
         for word in seg_sent:
-            if word in stopwords:
+            if word in stopwords or word in punt_list:
                 continue
             else:
                 new_sent.append(word)
@@ -219,7 +220,7 @@ class RunThread(QThread):
                                   categories=categories,
                                   load_content=True,
                                   encoding='gbk',
-                                  decode_error='strict',
+                                  decode_error='ignore',
                                   shuffle=True, random_state=42)
         # 该类会将文本中的词语转换为词频矩阵，矩阵元素a[i][j] 表示j词在i类文本下的词频
         vectorizer = CountVectorizer()
@@ -227,7 +228,7 @@ class RunThread(QThread):
         # 第一个fit_transform是计算tf-idf，第二个fit_transform是将文本转为词频矩阵
         tfidf = transformer.fit_transform(
             vectorizer.fit_transform(twenty_train.data))
-        clf = svm.SVC(kernel='linear', decision_function_shape='ovo')
+        clf = svm.SVC(C = 3,kernel='linear', decision_function_shape='ovo',class_weight='balanced')
         self._signal.emit('Building prefix dict from the default dictionary ...')
         clf = joblib.load("C:/Users/traci/Psycho-Pass/train_model_svm.pkl")
         self._signal.emit('Prefix dict has been built succesfully')
